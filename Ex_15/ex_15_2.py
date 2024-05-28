@@ -22,13 +22,20 @@ def input_file(max_attempts = 3):
 file = input_file()
 
 def clear_db():
+    '''Clears the existing data in the DB
+    '''
     cursor.execute('DELETE FROM Counts')
     connection.commit()
 
 def parse_file(file):
-    global cursor
+    '''Parses the connected file. Each line is checked if it starts with From: 
+    and has @ in it; the line is split by spaces and the email part (containing @) is split by @;
+    the domain bit is selected.
+    '''
     count = 0
+    #Clear existing data
     clear_db()
+
     if file is not None:
         for line in file:
             if line.startswith("From:") and "@" in line:
@@ -49,6 +56,18 @@ def parse_file(file):
 
         # Commit the transaction       
         connection.commit()
+def update_db(data):
+    global cursor
+    cursor.execute('SELECT Org FROM Counts WHERE Org = ?', (data,))
+    domain_is_present = cursor.fetchone()
+    if domain_is_present is None:
+        cursor.execute('''
+        INSERT INTO Counts (org, count) VALUES (?, 1)
+        ''', (data,))
+    else:
+        cursor.execute('''UPDATE Counts SET Count = Count + 1 
+                        WHERE Org = ? ''', (data,))
+
 parse_file(file)
 
 # Close the cursor and connection
