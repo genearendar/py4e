@@ -27,10 +27,24 @@ def clear_db():
     cursor.execute('DELETE FROM Counts')
     connection.commit()
 
+def update_db(data):
+    '''Check if the Org already exists in db. If yes > add + 1 to count. 
+    If not, add a record with count 1'''
+    global cursor
+    cursor.execute('SELECT Org FROM Counts WHERE Org = ?', (data,))
+    domain_is_present = cursor.fetchone()
+    if domain_is_present is None:
+        cursor.execute('''
+        INSERT INTO Counts (org, count) VALUES (?, 1)
+        ''', (data,))
+    else:
+        cursor.execute('''UPDATE Counts SET Count = Count + 1 
+                        WHERE Org = ? ''', (data,))
+        
 def parse_file(file):
     '''Parses the connected file. Each line is checked if it starts with From: 
     and has @ in it; the line is split by spaces and the email part (containing @) is split by @;
-    the domain bit is selected.
+    the domain bit is selected. Run update_db with domain as an argument.
     '''
     count = 0
     #Clear existing data
@@ -44,29 +58,10 @@ def parse_file(file):
                     if "@" in part:
                         email_parts = part.split("@")
                         domain = email_parts[1]
-                        cursor.execute('SELECT Org FROM Counts WHERE Org = ?', (domain,))
-                        domain_is_present = cursor.fetchone()
-                        if domain_is_present is None:
-                            cursor.execute('''
-                            INSERT INTO Counts (org, count) VALUES (?, 1)
-                            ''', (domain,))
-                        else:
-                            cursor.execute('''UPDATE Counts SET Count = Count + 1 
-                                           WHERE Org = ? ''', (domain,))
-
+                        update_db(domain)
         # Commit the transaction       
         connection.commit()
-def update_db(data):
-    global cursor
-    cursor.execute('SELECT Org FROM Counts WHERE Org = ?', (data,))
-    domain_is_present = cursor.fetchone()
-    if domain_is_present is None:
-        cursor.execute('''
-        INSERT INTO Counts (org, count) VALUES (?, 1)
-        ''', (data,))
-    else:
-        cursor.execute('''UPDATE Counts SET Count = Count + 1 
-                        WHERE Org = ? ''', (data,))
+
 
 parse_file(file)
 
