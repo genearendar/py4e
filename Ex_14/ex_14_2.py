@@ -1,8 +1,12 @@
 import urllib.request, urllib.parse, urllib.error
 import re
 import json
+from dotenv import load_dotenv
+import os
+load_dotenv()
 api_url = 'https://api.geoapify.com/v1/geocode/search'
-api_key = 'daf79d6df7d545b29b5e1e99bffd1b64'
+api_key = os.environ.get('MAP_API_KEY')
+print(api_key)
 while True:
     input_address = input('Type the address:\nOr type "Quit" to quit: ').lower()
     if input_address == "stop" or input_address == "none" or input_address == "quit":
