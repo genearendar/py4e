@@ -1,7 +1,7 @@
 import urllib.request, urllib.parse, urllib.error
 import re
 import json
-from dotenv import load_dotenv
+from dotenv import load_dotenv # type: ignore
 import os
 load_dotenv()
 api_url = 'https://api.geoapify.com/v1/geocode/search'
